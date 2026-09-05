@@ -1,0 +1,1180 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ระบบประเมินการนำเสนอโครงงานคอมพิวเตอร์</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js CDN -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Google Fonts (Kanit) -->
+    <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Kanit', sans-serif;
+            background: linear-gradient(135deg, #fce7f3 0%, #f3e8ff 40%, #e0f2fe 100%);
+        }
+        
+        /* Custom Selection Styles for Score Radio Cards */
+        /* 4 Points - Pink Pastel */
+        .score-radio-4:checked + label {
+            background: linear-gradient(135deg, #f472b6 0%, #ec4899 100%);
+            color: white;
+            border-color: #f472b6;
+            box-shadow: 0 10px 15px -3px rgba(236, 72, 153, 0.35);
+            transform: translateY(-2px);
+        }
+        /* 3 Points - Purple Pastel */
+        .score-radio-3:checked + label {
+            background: linear-gradient(135deg, #c084fc 0%, #a855f7 100%);
+            color: white;
+            border-color: #c084fc;
+            box-shadow: 0 10px 15px -3px rgba(168, 85, 247, 0.35);
+            transform: translateY(-2px);
+        }
+        /* 2 Points - Orange Pastel */
+        .score-radio-2:checked + label {
+            background: linear-gradient(135deg, #fb923c 0%, #f97316 100%);
+            color: white;
+            border-color: #fb923c;
+            box-shadow: 0 10px 15px -3px rgba(249, 115, 22, 0.35);
+            transform: translateY(-2px);
+        }
+        /* 1 Point - Red Pastel */
+        .score-radio-1:checked + label {
+            background: linear-gradient(135deg, #f87171 0%, #ef4444 100%);
+            color: white;
+            border-color: #f87171;
+            box-shadow: 0 10px 15px -3px rgba(239, 68, 68, 0.35);
+            transform: translateY(-2px);
+        }
+
+        /* Text colors when checked */
+        .score-radio:checked + label .text-desc {
+            color: #ffffff;
+        }
+        .score-radio:checked + label .score-title {
+            color: #ffffff;
+        }
+        .score-radio:checked + label .stars {
+            color: #fef08a; /* Yellow glow for stars */
+        }
+    </style>
+</head>
+<body class="text-gray-800 min-h-screen flex flex-col justify-between selection:bg-pink-200 selection:text-pink-800">
+
+    <!-- Header / Navigation Bar -->
+    <header class="bg-gradient-to-r from-purple-500 via-pink-400 to-rose-400 text-white shadow-lg sticky top-0 z-50 backdrop-blur-md">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div class="flex items-center gap-3">
+                <div class="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 shadow-inner">
+                    <i class="fa-solid fa-graduation-cap text-2xl text-yellow-200 animate-bounce"></i>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold leading-tight drop-shadow-sm">ระบบประเมินการนำเสนอโครงงานคอมพิวเตอร์</h1>
+                    <p class="text-xs text-pink-100 font-light flex items-center gap-1.5 mt-0.5">
+                        <span>Computer Project Presentation Evaluation System</span>
+                        <span class="bg-emerald-400/30 text-white text-[10px] px-2 py-0.5 rounded-full border border-white/20 flex items-center gap-1">
+                            <i class="fa-solid fa-file-excel text-yellow-300"></i> Google Sheet Linked
+                        </span>
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Navigation Tabs -->
+            <div class="flex bg-white/20 backdrop-blur-md p-1.5 rounded-2xl border border-white/30 shadow-inner">
+                <button id="tab-eval" onclick="switchTab('eval')" class="px-5 py-2 text-sm font-bold rounded-xl transition-all duration-300 bg-white text-purple-600 shadow-md">
+                    <i class="fa-solid fa-pen-to-square mr-1.5"></i> แบบประเมิน
+                </button>
+                <button id="tab-dashboard" onclick="switchTab('dashboard')" class="px-5 py-2 text-sm font-bold rounded-xl transition-all duration-300 text-white hover:bg-white/10 flex items-center gap-1.5">
+                    <i class="fa-solid fa-lock text-xs text-yellow-200" id="lockIcon"></i>
+                    <i class="fa-solid fa-chart-pie mr-1"></i> สรุปผลสำหรับครู
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Area -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 flex-grow w-full">
+
+        <!-- SECTION 1: Evaluation Form -->
+        <section id="section-eval" class="space-y-6">
+            <div class="bg-white/80 backdrop-blur-md rounded-3xl shadow-xl shadow-purple-100/50 p-6 sm:p-8 border border-white">
+                <div class="border-b border-purple-100 pb-3 mb-6">
+                    <h2 class="text-xl font-bold text-purple-900 flex items-center gap-2">
+                        <span class="p-2 bg-pink-100 text-pink-500 rounded-xl"><i class="fa-solid fa-id-card"></i></span> ข้อมูลทั่วไป
+                    </h2>
+                </div>
+
+                <form id="evaluationForm" onsubmit="submitForm(event)">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+                        <!-- Group Name -->
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">ชื่อกลุ่มที่นำเสนอ <span class="text-pink-500">*</span></label>
+                            <input type="text" id="groupName" required placeholder="เช่น กลุ่มที่ 1 (แอปพลิเคชันจัดการขยะ)" class="w-full px-4 py-3 rounded-2xl border border-purple-100 bg-purple-50/30 focus:bg-white focus:ring-2 focus:ring-pink-300 focus:border-pink-400 outline-none transition text-sm">
+                        </div>
+
+                        <!-- Date -->
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">วันที่ประเมิน <span class="text-pink-500">*</span></label>
+                            <input type="date" id="evalDate" required class="w-full px-4 py-3 rounded-2xl border border-purple-100 bg-purple-50/30 focus:bg-white focus:ring-2 focus:ring-pink-300 focus:border-pink-400 outline-none transition text-sm">
+                        </div>
+
+                        <!-- Evaluator Name -->
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">ชื่อผู้ประเมิน <span class="text-pink-500">*</span></label>
+                            <input type="text" id="evaluatorName" required placeholder="ชื่อ-นามสกุล" class="w-full px-4 py-3 rounded-2xl border border-purple-100 bg-purple-50/30 focus:bg-white focus:ring-2 focus:ring-pink-300 focus:border-pink-400 outline-none transition text-sm">
+                        </div>
+
+                        <!-- Evaluator Role -->
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">ผู้ประเมิน <span class="text-pink-500">*</span></label>
+                            <div class="flex gap-4 pt-1">
+                                <label class="flex items-center gap-2 cursor-pointer px-4 py-2 bg-pink-50 rounded-xl border border-pink-100 hover:bg-pink-100/60 transition">
+                                    <input type="radio" name="evaluatorRole" value="ครู" checked class="w-4 h-4 text-pink-500 focus:ring-pink-400">
+                                    <span class="text-gray-700 font-semibold text-sm">👩‍🏫 ครู</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer px-4 py-2 bg-purple-50 rounded-xl border border-purple-100 hover:bg-purple-100/60 transition">
+                                    <input type="radio" name="evaluatorRole" value="นักเรียน" class="w-4 h-4 text-purple-500 focus:ring-purple-400">
+                                    <span class="text-gray-700 font-semibold text-sm">🧑‍🎓 นักเรียน</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <!-- Subject Dropdown -->
+                        <div>
+                            <label class="block text-sm font-bold text-gray-700 mb-2">รายวิชา <span class="text-pink-500">*</span></label>
+                            <select id="subject" required class="w-full px-4 py-3 rounded-2xl border border-purple-100 bg-purple-50/30 focus:bg-white focus:ring-2 focus:ring-pink-300 focus:border-pink-400 outline-none transition text-sm">
+                                <!-- Options will be populated by JS -->
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Rubric Table Criteria -->
+                    <h2 class="text-xl font-bold text-purple-900 border-b border-purple-100 pb-3 mb-6 flex items-center justify-between">
+                        <span class="flex items-center gap-2">
+                            <span class="p-2 bg-purple-100 text-purple-600 rounded-xl"><i class="fa-solid fa-list-check"></i></span> รายการประเมิน
+                        </span>
+                        <!-- Legend showing color codes -->
+                        <span class="hidden sm:flex gap-3 text-xs font-semibold">
+                            <span class="flex items-center gap-1 text-pink-600 bg-pink-50 px-2 py-1 rounded-lg border border-pink-200">4 คะแนน (ชมพู)</span>
+                            <span class="flex items-center gap-1 text-purple-600 bg-purple-50 px-2 py-1 rounded-lg border border-purple-200">3 คะแนน (ม่วง)</span>
+                            <span class="flex items-center gap-1 text-amber-600 bg-amber-50 px-2 py-1 rounded-lg border border-amber-200">2 คะแนน (ส้ม)</span>
+                            <span class="flex items-center gap-1 text-red-600 bg-red-50 px-2 py-1 rounded-lg border border-red-200">1 คะแนน (แดง)</span>
+                        </span>
+                    </h2>
+
+                    <div class="space-y-6">
+                        <!-- Item 1 -->
+                        <div class="bg-gradient-to-br from-pink-50/60 to-purple-50/60 rounded-2xl p-5 border border-pink-100/80 transition">
+                            <div class="font-bold text-lg text-purple-900 mb-3 flex items-center gap-2">
+                                <span class="w-7 h-7 bg-pink-200 text-pink-700 rounded-lg inline-flex items-center justify-center text-sm font-black">1</span>
+                                การนำเสนอผลงาน
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                                <div>
+                                    <input type="radio" id="q1_4" name="q1" value="4" class="hidden score-radio score-radio-4" onchange="calculateScore()">
+                                    <label for="q1_4" class="block h-full p-3.5 rounded-xl border border-pink-200 bg-white cursor-pointer hover:border-pink-400 transition-all duration-200 shadow-sm">
+                                        <div class="flex justify-between items-center mb-1">
+                                            <span class="font-bold text-pink-600 text-sm score-title">4 คะแนน (ดีเยี่ยม)</span>
+                                            <span class="text-amber-400 text-xs stars">⭐⭐⭐⭐</span>
+                                        </div>
+                                        <div class="text-xs text-gray-600 leading-relaxed text-desc">นำเสนอชัดเจน เป็นลำดับ น่าสนใจ และตอบคำถามได้ดี</div>
+                                    </label>
+                                </div>
+                                <div>
+                                    <input type="radio" id="q1_3" name="q1" value="3" class="hidden score-radio score-radio-3" onchange="calculateScore()">
+                                    <label for="q1_3" class="block h-full p-3.5 rounded-xl border border-purple-200 bg-white cursor-pointer hover:border-purple-400 transition-all duration-200 shadow-sm">
+                                        <div class="flex justify-between items-center mb-1">
+                                            <span class="font-bold text-purple-600 text-sm score-title">3 คะแนน (ดี)</span>
+                                            <span class="text-amber-400 text-xs stars">⭐⭐⭐</span>
+                                        </div>
+                                        <div class="text-xs text-gray-600 leading-relaxed text-desc">นำเสนอชัดเจน มีลำดับ ตอบคำถามได้</div>
+                                    </label>
+                                </div>
+                                <div>
+                                    <input type="radio" id="q1_2" name="q1" value="2" class="hidden score-radio score-radio-2" onchange="calculateScore()">
+                                    <label for="q1_2" class="block h-full p-3.5 rounded-xl border border-orange-200 bg-white cursor-pointer hover:border-orange-400 transition-all duration-200 shadow-sm">
+                                        <div class="flex justify-between items-center mb-1">
+                                            <span class="font-bold text-amber-600 text-sm score-title">2 คะแนน (พอใช้)</span>
+                                            <span class="text-amber-400 text-xs stars">⭐⭐</span>
+                                        </div>
+                                        <div class="text-xs text-gray-600 leading-relaxed text-desc">นำเสนอไม่ต่อเนื่องหรือติดขัดบ้าง</div>
+                                    </label>
+                                </div>
+                                <div>
+                                    <input type="radio" id="q1_1" name="q1" value="1" class="hidden score-radio score-radio-1" onchange="calculateScore()">
+                                    <label for="q1_1" class="block h-full p-3.5 rounded-xl border border-red-200 bg-white cursor-pointer hover:border-red-400 transition-all duration-200 shadow-sm">
+                                        <div class="flex justify-between items-center mb-1">
+                                            <span class="font-bold text-red-600 text-sm score-title">1 คะแนน (ปรับปรุง)</span>
+                                            <span class="text-amber-400 text-xs stars">⭐</span>
+                                        </div>
+                                        <div class="text-xs text-gray-600 leading-relaxed text-desc">นำเสนอไม่ชัดเจน ขาดความมั่นใจ</div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Item 2 -->
+                        <div class="bg-gradient-to-br from-purple-50/60 to-indigo-50/60 rounded-2xl p-5 border border-purple-100/80 transition">
+                            <div class="font-bold text-lg text-purple-900 mb-3 flex items-center gap-2">
+                                <span class="w-7 h-7 bg-purple-200 text-purple-700 rounded-lg inline-flex items-center justify-center text-sm font-black">2</span>
+                                ความครบถ้วนของเนื้อหา
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                                <div>
+                                    <input type="radio" id="q2_4" name="q2" value="4" class="hidden score-radio score-radio-4" onchange="calculateScore()">
+                                    <label for="q2_4" class="block h-full p-3.5 rounded-xl border border-pink-200 bg-white cursor-pointer hover:border-pink-400 transition-all duration-200 shadow-sm">
+                                        <div class="flex justify-between items-center mb-1">
+                                            <span class="font-bold text-pink-600 text-sm score-title">4 คะแนน (ดีเยี่ยม)</span>
+                                            <span class="text-amber-400 text-xs stars">⭐⭐⭐⭐</span>
+                                        </div>
+                                        <div class="text-xs text-gray-600 leading-relaxed text-desc">เนื้อหาครบถ้วน ถูกต้อง ครอบคลุมทุกประเด็น</div>
+                                    </label>
+                                </div>
+                                <div>
+                                    <input type="radio" id="q2_3" name="q2" value="3" class="hidden score-radio score-radio-3" onchange="calculateScore()">
+                                    <label for="q2_3" class="block h-full p-3.5 rounded-xl border border-purple-200 bg-white cursor-pointer hover:border-purple-400 transition-all duration-200 shadow-sm">
+                                        <div class="flex justify-between items-center mb-1">
+                                            <span class="font-bold text-purple-600 text-sm score-title">3 คะแนน (ดี)</span>
+                                            <span class="text-amber-400 text-xs stars">⭐⭐⭐</span>
+                                        </div>
+                                        <div class="text-xs text-gray-600 leading-relaxed text-desc">เนื้อหาครบถ้วนเกือบทั้งหมด มีข้อผิดพลาดเล็กน้อย</div>
+                                    </label>
+                                </div>
+                                <div>
+                                    <input type="radio" id="q2_2" name="q2" value="2" class="hidden score-radio score-radio-2" onchange="calculateScore()">
+                                    <label for="q2_2" class="block h-full p-3.5 rounded-xl border border-orange-200 bg-white cursor-pointer hover:border-orange-400 transition-all duration-200 shadow-sm">
+                                        <div class="flex justify-between items-center mb-1">
+                                            <span class="font-bold text-amber-600 text-sm score-title">2 คะแนน (พอใช้)</span>
+                                            <span class="text-amber-400 text-xs stars">⭐⭐</span>
+                                        </div>
+                                        <div class="text-xs text-gray-600 leading-relaxed text-desc">เนื้อหาขาดบางส่วน</div>
+                                    </label>
+                                </div>
+                                <div>
+                                    <input type="radio" id="q2_1" name="q2" value="1" class="hidden score-radio score-radio-1" onchange="calculateScore()">
+                                    <label for="q2_1" class="block h-full p-3.5 rounded-xl border border-red-200 bg-white cursor-pointer hover:border-red-400 transition-all duration-200 shadow-sm">
+                                        <div class="flex justify-between items-center mb-1">
+                                            <span class="font-bold text-red-600 text-sm score-title">1 คะแนน (ปรับปรุง)</span>
+                                            <span class="text-amber-400 text-xs stars">⭐</span>
+                                        </div>
+                                        <div class="text-xs text-gray-600 leading-relaxed text-desc">เนื้อหาขาดหลายส่วน</div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Item 3 -->
+                        <div class="bg-gradient-to-br from-blue-50/60 to-teal-50/60 rounded-2xl p-5 border border-sky-100/80 transition">
+                            <div class="font-bold text-lg text-purple-900 mb-3 flex items-center gap-2">
+                                <span class="w-7 h-7 bg-sky-200 text-sky-700 rounded-lg inline-flex items-center justify-center text-sm font-black">3</span>
+                                การออกแบบและความสวยงามของเว็บไซต์
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                                <div>
+                                    <input type="radio" id="q3_4" name="q3" value="4" class="hidden score-radio score-radio-4" onchange="calculateScore()">
+                                    <label for="q3_4" class="block h-full p-3.5 rounded-xl border border-pink-200 bg-white cursor-pointer hover:border-pink-400 transition-all duration-200 shadow-sm">
+                                        <div class="flex justify-between items-center mb-1">
+                                            <span class="font-bold text-pink-600 text-sm score-title">4 คะแนน (ดีเยี่ยม)</span>
+                                            <span class="text-amber-400 text-xs stars">⭐⭐⭐⭐</span>
+                                        </div>
+                                        <div class="text-xs text-gray-600 leading-relaxed text-desc">สวยงาม มีความคิดสร้างสรรค์ จัดองค์ประกอบเหมาะสม</div>
+                                    </label>
+                                </div>
+                                <div>
+                                    <input type="radio" id="q3_3" name="q3" value="3" class="hidden score-radio score-radio-3" onchange="calculateScore()">
+                                    <label for="q3_3" class="block h-full p-3.5 rounded-xl border border-purple-200 bg-white cursor-pointer hover:border-purple-400 transition-all duration-200 shadow-sm">
+                                        <div class="flex justify-between items-center mb-1">
+                                            <span class="font-bold text-purple-600 text-sm score-title">3 คะแนน (ดี)</span>
+                                            <span class="text-amber-400 text-xs stars">⭐⭐⭐</span>
+                                        </div>
+                                        <div class="text-xs text-gray-600 leading-relaxed text-desc">สวยงาม จัดองค์ประกอบเหมาะสม</div>
+                                    </label>
+                                </div>
+                                <div>
+                                    <input type="radio" id="q3_2" name="q3" value="2" class="hidden score-radio score-radio-2" onchange="calculateScore()">
+                                    <label for="q3_2" class="block h-full p-3.5 rounded-xl border border-orange-200 bg-white cursor-pointer hover:border-orange-400 transition-all duration-200 shadow-sm">
+                                        <div class="flex justify-between items-center mb-1">
+                                            <span class="font-bold text-amber-600 text-sm score-title">2 คะแนน (พอใช้)</span>
+                                            <span class="text-amber-400 text-xs stars">⭐⭐</span>
+                                        </div>
+                                        <div class="text-xs text-gray-600 leading-relaxed text-desc">การออกแบบพอใช้ มีบางส่วนไม่เหมาะสม</div>
+                                    </label>
+                                </div>
+                                <div>
+                                    <input type="radio" id="q3_1" name="q3" value="1" class="hidden score-radio score-radio-1" onchange="calculateScore()">
+                                    <label for="q3_1" class="block h-full p-3.5 rounded-xl border border-red-200 bg-white cursor-pointer hover:border-red-400 transition-all duration-200 shadow-sm">
+                                        <div class="flex justify-between items-center mb-1">
+                                            <span class="font-bold text-red-600 text-sm score-title">1 คะแนน (ปรับปรุง)</span>
+                                            <span class="text-amber-400 text-xs stars">⭐</span>
+                                        </div>
+                                        <div class="text-xs text-gray-600 leading-relaxed text-desc">การออกแบบไม่เหมาะสมหรือไม่เป็นระเบียบ</div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Item 4 -->
+                        <div class="bg-gradient-to-br from-emerald-50/60 to-teal-50/60 rounded-2xl p-5 border border-emerald-100/80 transition">
+                            <div class="font-bold text-lg text-purple-900 mb-3 flex items-center gap-2">
+                                <span class="w-7 h-7 bg-emerald-200 text-emerald-700 rounded-lg inline-flex items-center justify-center text-sm font-black">4</span>
+                                ความสมบูรณ์ของผลงาน
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                                <div>
+                                    <input type="radio" id="q4_4" name="q4" value="4" class="hidden score-radio score-radio-4" onchange="calculateScore()">
+                                    <label for="q4_4" class="block h-full p-3.5 rounded-xl border border-pink-200 bg-white cursor-pointer hover:border-pink-400 transition-all duration-200 shadow-sm">
+                                        <div class="flex justify-between items-center mb-1">
+                                            <span class="font-bold text-pink-600 text-sm score-title">4 คะแนน (ดีเยี่ยม)</span>
+                                            <span class="text-amber-400 text-xs stars">⭐⭐⭐⭐</span>
+                                        </div>
+                                        <div class="text-xs text-gray-600 leading-relaxed text-desc">โปรแกรมทำงานได้สมบูรณ์ ใช้งานได้จริง ฟังก์ชันครบถ้วน และบรรลุวัตถุประสงค์ทั้งหมด</div>
+                                    </label>
+                                </div>
+                                <div>
+                                    <input type="radio" id="q4_3" name="q4" value="3" class="hidden score-radio score-radio-3" onchange="calculateScore()">
+                                    <label for="q4_3" class="block h-full p-3.5 rounded-xl border border-purple-200 bg-white cursor-pointer hover:border-purple-400 transition-all duration-200 shadow-sm">
+                                        <div class="flex justify-between items-center mb-1">
+                                            <span class="font-bold text-purple-600 text-sm score-title">3 คะแนน (ดี)</span>
+                                            <span class="text-amber-400 text-xs stars">⭐⭐⭐</span>
+                                        </div>
+                                        <div class="text-xs text-gray-600 leading-relaxed text-desc">โปรแกรมใช้งานได้เกือบสมบูรณ์ มีข้อผิดพลาดเล็กน้อย แต่บรรลุวัตถุประสงค์ส่วนใหญ่</div>
+                                    </label>
+                                </div>
+                                <div>
+                                    <input type="radio" id="q4_2" name="q4" value="2" class="hidden score-radio score-radio-2" onchange="calculateScore()">
+                                    <label for="q4_2" class="block h-full p-3.5 rounded-xl border border-orange-200 bg-white cursor-pointer hover:border-orange-400 transition-all duration-200 shadow-sm">
+                                        <div class="flex justify-between items-center mb-1">
+                                            <span class="font-bold text-amber-600 text-sm score-title">2 คะแนน (พอใช้)</span>
+                                            <span class="text-amber-400 text-xs stars">⭐⭐</span>
+                                        </div>
+                                        <div class="text-xs text-gray-600 leading-relaxed text-desc">โปรแกรมใช้งานได้บางส่วน มีข้อผิดพลาดหรือฟังก์ชันไม่ครบ และบรรลุวัตถุประสงค์บางส่วน</div>
+                                    </label>
+                                </div>
+                                <div>
+                                    <input type="radio" id="q4_1" name="q4" value="1" class="hidden score-radio score-radio-1" onchange="calculateScore()">
+                                    <label for="q4_1" class="block h-full p-3.5 rounded-xl border border-red-200 bg-white cursor-pointer hover:border-red-400 transition-all duration-200 shadow-sm">
+                                        <div class="flex justify-between items-center mb-1">
+                                            <span class="font-bold text-red-600 text-sm score-title">1 คะแนน (ปรับปรุง)</span>
+                                            <span class="text-amber-400 text-xs stars">⭐</span>
+                                        </div>
+                                        <div class="text-xs text-gray-600 leading-relaxed text-desc">โปรแกรมยังไม่สมบูรณ์ มีข้อผิดพลาดหลายส่วน ใช้งานได้จำกัด และไม่บรรลุวัตถุประสงค์อย่างชัดเจน</div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Item 5 -->
+                        <div class="bg-gradient-to-br from-amber-50/60 to-rose-50/60 rounded-2xl p-5 border border-amber-100/80 transition">
+                            <div class="font-bold text-lg text-purple-900 mb-3 flex items-center gap-2">
+                                <span class="w-7 h-7 bg-amber-200 text-amber-700 rounded-lg inline-flex items-center justify-center text-sm font-black">5</span>
+                                ความคิดสร้างสรรค์ของผลงาน
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-4 gap-3">
+                                <div>
+                                    <input type="radio" id="q5_4" name="q5" value="4" class="hidden score-radio score-radio-4" onchange="calculateScore()">
+                                    <label for="q5_4" class="block h-full p-3.5 rounded-xl border border-pink-200 bg-white cursor-pointer hover:border-pink-400 transition-all duration-200 shadow-sm">
+                                        <div class="flex justify-between items-center mb-1">
+                                            <span class="font-bold text-pink-600 text-sm score-title">4 คะแนน (ดีเยี่ยม)</span>
+                                            <span class="text-amber-400 text-xs stars">⭐⭐⭐⭐</span>
+                                        </div>
+                                        <div class="text-xs text-gray-600 leading-relaxed text-desc">มีแนวคิดสร้างสรรค์ โดดเด่น แปลกใหม่ และมีการประยุกต์ใช้ความรู้ได้อย่างน่าสนใจ</div>
+                                    </label>
+                                </div>
+                                <div>
+                                    <input type="radio" id="q5_3" name="q5" value="3" class="hidden score-radio score-radio-3" onchange="calculateScore()">
+                                    <label for="q5_3" class="block h-full p-3.5 rounded-xl border border-purple-200 bg-white cursor-pointer hover:border-purple-400 transition-all duration-200 shadow-sm">
+                                        <div class="flex justify-between items-center mb-1">
+                                            <span class="font-bold text-purple-600 text-sm score-title">3 คะแนน (ดี)</span>
+                                            <span class="text-amber-400 text-xs stars">⭐⭐⭐</span>
+                                        </div>
+                                        <div class="text-xs text-gray-600 leading-relaxed text-desc">มีความคิดสร้างสรรค์และมีการประยุกต์ใช้ความรู้ แต่ยังมีลักษณะคล้ายตัวอย่างหรือผลงานทั่วไป</div>
+                                    </label>
+                                </div>
+                                <div>
+                                    <input type="radio" id="q5_2" name="q5" value="2" class="hidden score-radio score-radio-2" onchange="calculateScore()">
+                                    <label for="q5_2" class="block h-full p-3.5 rounded-xl border border-orange-200 bg-white cursor-pointer hover:border-orange-400 transition-all duration-200 shadow-sm">
+                                        <div class="flex justify-between items-center mb-1">
+                                            <span class="font-bold text-amber-600 text-sm score-title">2 คะแนน (พอใช้)</span>
+                                            <span class="text-amber-400 text-xs stars">⭐⭐</span>
+                                        </div>
+                                        <div class="text-xs text-gray-600 leading-relaxed text-desc">มีความคิดสร้างสรรค์น้อย ใช้รูปแบบหรือแนวคิดตามตัวอย่างเป็นส่วนใหญ่</div>
+                                    </label>
+                                </div>
+                                <div>
+                                    <input type="radio" id="q5_1" name="q5" value="1" class="hidden score-radio score-radio-1" onchange="calculateScore()">
+                                    <label for="q5_1" class="block h-full p-3.5 rounded-xl border border-red-200 bg-white cursor-pointer hover:border-red-400 transition-all duration-200 shadow-sm">
+                                        <div class="flex justify-between items-center mb-1">
+                                            <span class="font-bold text-red-600 text-sm score-title">1 คะแนน (ปรับปรุง)</span>
+                                            <span class="text-amber-400 text-xs stars">⭐</span>
+                                        </div>
+                                        <div class="text-xs text-gray-600 leading-relaxed text-desc">ไม่มีแนวคิดสร้างสรรค์หรือไม่ได้แสดงให้เห็นถึงการประยุกต์ใช้ความรู้</div>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Item 6: Suggestions Box -->
+                        <div class="bg-gradient-to-br from-purple-50 to-pink-50 rounded-2xl p-5 border border-purple-100 shadow-sm">
+                            <label for="suggestions" class="font-bold text-lg text-purple-900 mb-2 flex items-center gap-2">
+                                <span class="w-7 h-7 bg-pink-200 text-pink-700 rounded-lg inline-flex items-center justify-center text-sm font-black"><i class="fa-solid fa-comment-dots text-xs"></i></span>
+                                ข้อเสนอแนะเพิ่มเติม (ถ้ามี)
+                            </label>
+                            <textarea id="suggestions" rows="3" placeholder="พิมพ์ข้อเสนอแนะ ข้อควรปรับปรุง หรือคำชมเชยสำหรับกลุ่มนี้..." class="w-full px-4 py-3 rounded-xl border border-purple-200 focus:ring-2 focus:ring-pink-300 focus:border-pink-400 outline-none transition text-sm bg-white/90"></textarea>
+                        </div>
+                    </div>
+
+                    <!-- Live Result Display Banner -->
+                    <div id="resultBanner" class="mt-8 p-6 rounded-2xl bg-purple-50/60 border-2 border-dashed border-purple-200 text-center transition-all duration-300">
+                        <p class="text-purple-400 font-medium">กรุณาประเมินให้ครบทั้ง 5 รายการเพื่อแสดงผลคะแนนสรุป</p>
+                    </div>
+
+                    <!-- Submit Button with loading status -->
+                    <div class="mt-8 flex justify-end">
+                        <button type="submit" id="submitBtn" disabled class="px-8 py-3.5 bg-gray-200 text-gray-400 font-bold rounded-2xl shadow-none cursor-not-allowed transition-all duration-300 flex items-center gap-2">
+                            <i class="fa-solid fa-paper-plane"></i> <span id="submitBtnText">บันทึกผลการประเมินลง Google Sheet</span>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </section>
+
+        <!-- SECTION 2: Teacher Dashboard -->
+        <section id="section-dashboard" class="space-y-6 hidden">
+            <!-- Top Controls and Filters -->
+            <div class="bg-white/80 backdrop-blur-md rounded-3xl shadow-xl shadow-purple-100/50 p-6 border border-white flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                <div>
+                    <h2 class="text-xl font-bold text-purple-900 flex items-center gap-2">
+                        <span class="p-2 bg-pink-100 text-pink-500 rounded-xl"><i class="fa-solid fa-square-poll-vertical"></i></span> สรุปผลการประเมินโครงงาน
+                    </h2>
+                    <p class="text-sm text-purple-500/80 mt-1">ข้อมูลดึงตรงจาก Google Sheet อัตโนมัติ</p>
+                </div>
+
+                <div class="flex flex-wrap gap-2.5 w-full md:w-auto">
+                    <!-- Open Google Sheet Button moved here -->
+                    <a href="https://docs.google.com/spreadsheets/d/19N3MtJ0lUGSRCaVEQlMhm5a830i3DVQXbgKMcQlpzyQ/edit" target="_blank" class="px-4 py-2.5 bg-emerald-500 hover:bg-emerald-600 text-white rounded-xl text-sm font-bold shadow-md shadow-emerald-100 transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-table"></i> เปิด Google Sheet
+                    </a>
+
+                    <!-- Refresh Button -->
+                    <button onclick="fetchDataFromSheet()" class="px-4 py-2.5 bg-purple-100 hover:bg-purple-200 text-purple-700 rounded-xl text-sm font-bold transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-rotate text-purple-500"></i> รีเฟรชข้อมูล
+                    </button>
+
+                    <!-- Filter Subject -->
+                    <select id="filterSubject" onchange="renderDashboard()" class="px-4 py-2.5 rounded-xl border border-purple-100 text-sm font-semibold text-purple-900 focus:ring-2 focus:ring-pink-300 outline-none bg-white">
+                        <!-- Options will be populated by JS -->
+                    </select>
+
+                    <!-- Export Button -->
+                    <button onclick="exportToCSV()" class="px-5 py-2.5 bg-gradient-to-r from-emerald-400 to-teal-500 hover:from-emerald-500 hover:to-teal-600 text-white rounded-xl text-sm font-bold shadow-md shadow-emerald-200 transition flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-file-excel"></i> ดาวน์โหลด CSV/Excel
+                    </button>
+
+                    <!-- Lock / Logout Button -->
+                    <button onclick="lockTeacherSession()" class="px-4 py-2.5 bg-rose-100 hover:bg-rose-200 text-rose-700 rounded-xl text-sm font-bold transition flex items-center justify-center gap-1.5" title="ออกจากระบบเพื่อล็อกหน้าครู">
+                        <i class="fa-solid fa-lock"></i> ล็อกระบบ
+                    </button>
+                </div>
+            </div>
+
+            <!-- Subject Management System for Teacher -->
+            <div class="bg-white/80 backdrop-blur-md rounded-3xl shadow-xl shadow-purple-100/50 p-6 border border-white">
+                <div class="flex justify-between items-center mb-4 cursor-pointer" onclick="toggleSubjectManager()">
+                    <h3 class="text-lg font-bold text-purple-900 flex items-center gap-2">
+                        <span class="p-2 bg-purple-100 text-purple-600 rounded-xl"><i class="fa-solid fa-book-bookmark"></i></span> จัดการรายวิชา
+                    </h3>
+                    <button id="toggleManagerBtn" class="text-purple-600 font-bold text-sm flex items-center gap-1 hover:text-pink-600 transition">
+                        <span>ซ่อน / แสดง</span>
+                        <i class="fa-solid fa-chevron-down transition-transform duration-200" id="managerChevron"></i>
+                    </button>
+                </div>
+
+                <div id="subjectManagerContainer" class="mt-4 pt-4 border-t border-purple-50">
+                    <!-- Add Subject Input -->
+                    <div class="flex flex-col sm:flex-row gap-3 mb-6">
+                        <input type="text" id="newSubjectName" placeholder="เช่น ว30206 คอมพิวเตอร์กราฟิก" class="flex-grow px-4 py-2.5 rounded-xl border border-purple-100 focus:ring-2 focus:ring-pink-300 outline-none text-sm bg-purple-50/30">
+                        <button onclick="addNewSubject()" class="px-6 py-2.5 bg-gradient-to-r from-pink-400 to-purple-500 hover:from-pink-500 hover:to-purple-600 text-white font-bold rounded-xl shadow-md shadow-pink-200 text-sm transition flex items-center justify-center gap-2">
+                            <i class="fa-solid fa-plus"></i> เพิ่มรายวิชา
+                        </button>
+                    </div>
+
+                    <!-- Current Subject Chips List -->
+                    <div>
+                        <p class="text-xs font-bold text-purple-600 uppercase mb-3">รายการวิชาทั้งหมดในระบบ:</p>
+                        <div id="subjectChipsList" class="flex flex-wrap gap-2">
+                            <!-- JS Will Render Subject Chips -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Chart Section -->
+            <div class="bg-white/80 backdrop-blur-md rounded-3xl shadow-xl shadow-purple-100/50 p-6 border border-white">
+                <h3 class="text-lg font-bold text-purple-900 mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-chart-column text-pink-500"></i> กราฟเปรียบเทียบคะแนนเฉลี่ยรวมแต่ละกลุ่ม (/20 คะแนน)
+                </h3>
+                <div class="relative w-full h-72 sm:h-80">
+                    <canvas id="summaryChart"></canvas>
+                </div>
+            </div>
+
+            <!-- Table Section -->
+            <div class="bg-white/80 backdrop-blur-md rounded-3xl shadow-xl shadow-purple-100/50 overflow-hidden border border-white">
+                <div class="p-6 border-b border-purple-50 flex justify-between items-center">
+                    <h3 class="text-lg font-bold text-purple-900 flex items-center gap-2">
+                        <i class="fa-solid fa-table text-purple-500"></i> ตารางสรุปคะแนนเฉลี่ยแยกรายข้อ
+                    </h3>
+                    <span id="dataCountBadge" class="bg-pink-100 text-pink-700 text-xs font-bold px-3 py-1 rounded-full">0 กลุ่ม</span>
+                </div>
+
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left text-gray-600">
+                        <thead class="text-xs text-purple-900 uppercase bg-purple-50/80 border-b border-purple-100">
+                            <tr>
+                                <th scope="col" class="px-6 py-4 font-bold">กลุ่ม</th>
+                                <th scope="col" class="px-4 py-4 text-center font-bold">การนำเสนอ</th>
+                                <th scope="col" class="px-4 py-4 text-center font-bold">เนื้อหา</th>
+                                <th scope="col" class="px-4 py-4 text-center font-bold">ออกแบบ</th>
+                                <th scope="col" class="px-4 py-4 text-center font-bold">ความสมบูรณ์</th>
+                                <th scope="col" class="px-4 py-4 text-center font-bold">ความคิดสร้างสรรค์</th>
+                                <th scope="col" class="px-6 py-4 text-center bg-pink-50 font-bold text-pink-900">เฉลี่ย / 20</th>
+                                <th scope="col" class="px-6 py-4 text-center font-bold">ระดับคุณภาพ</th>
+                            </tr>
+                        </thead>
+                        <tbody id="summaryTableBody">
+                            <!-- JS Will Render Rows Here -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-white/60 backdrop-blur-md border-t border-purple-100/50 mt-12 py-4">
+        <div class="max-w-7xl mx-auto px-4 text-center text-xs text-purple-600/70 font-medium">
+            ระบบประเมินการนำเสนอโครงงานคอมพิวเตอร์ &copy; 2026 - สไตล์พาสเทลสดใส เชื่อมต่อ Google Sheet
+        </div>
+    </footer>
+
+    <!-- Teacher Password Authentication Modal -->
+    <div id="passwordModal" class="fixed inset-0 bg-purple-900/40 backdrop-blur-md z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-sm w-full mx-4 shadow-2xl text-center transform scale-95 transition-transform duration-300 border border-purple-100" id="passwordBox">
+            <div class="w-16 h-16 bg-gradient-to-tr from-purple-400 to-pink-400 text-white rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl shadow-lg shadow-purple-200">
+                <i class="fa-solid fa-user-shield"></i>
+            </div>
+            <h3 class="text-xl font-bold text-purple-900 mb-1">ยืนยันสิทธิ์สำหรับครู</h3>
+            <p class="text-xs text-purple-500 mb-6">กรุณากรอกรหัสผ่านเพื่อเข้าถึงหน้าสรุปผลการประเมิน</p>
+            
+            <form onsubmit="verifyPassword(event)" class="space-y-4">
+                <div class="relative">
+                    <input type="password" id="pwdInput" required placeholder="กรอกรหัสผ่าน" class="w-full px-4 py-3 rounded-2xl border border-purple-200 focus:ring-2 focus:ring-pink-300 focus:border-pink-400 outline-none transition text-center text-lg font-bold tracking-widest bg-purple-50/30">
+                    <div id="pwdError" class="text-xs font-bold text-rose-500 mt-2 hidden flex items-center justify-center gap-1">
+                        <i class="fa-solid fa-circle-exclamation"></i> รหัสผ่านไม่ถูกต้อง กรุณาลองใหม่
+                    </div>
+                </div>
+
+                <div class="flex gap-2">
+                    <button type="button" onclick="cancelPasswordModal()" class="w-1/2 py-3 bg-gray-100 hover:bg-gray-200 text-gray-600 font-bold rounded-2xl transition text-sm">
+                        ยกเลิก
+                    </button>
+                    <button type="submit" class="w-1/2 py-3 bg-gradient-to-r from-pink-400 to-purple-500 hover:from-pink-500 hover:to-purple-600 text-white font-bold rounded-2xl shadow-lg shadow-pink-200 transition text-sm">
+                        ตกลง
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Custom General Message Modal -->
+    <div id="modal" class="fixed inset-0 bg-purple-900/30 backdrop-blur-sm z-50 flex items-center justify-center hidden opacity-0 transition-opacity duration-300">
+        <div class="bg-white rounded-3xl p-6 sm:p-8 max-w-sm w-full mx-4 shadow-2xl text-center transform scale-95 transition-transform duration-300 border border-pink-100" id="modalBox">
+            <div class="w-16 h-16 bg-pink-100 text-pink-500 rounded-2xl flex items-center justify-center mx-auto mb-4 text-2xl shadow-inner" id="modalIcon">
+                <i class="fa-solid fa-check"></i>
+            </div>
+            <h3 class="text-xl font-bold text-purple-900 mb-2" id="modalTitle">บันทึกสำเร็จ!</h3>
+            <p class="text-purple-600/80 text-sm mb-6 leading-relaxed" id="modalMessage">ข้อมูลการประเมินถูกบันทึกลงระบบเรียบร้อยแล้ว</p>
+            <button onclick="closeModal()" class="w-full py-3 bg-gradient-to-r from-pink-400 to-purple-500 hover:from-pink-500 hover:to-purple-600 text-white font-bold rounded-2xl shadow-lg shadow-pink-200 transition">
+                ตกลง
+            </button>
+        </div>
+    </div>
+
+    <!-- Application Script Logic -->
+    <script>
+        // Google Web App URL (ใส่ URL หลังการสั่ง Deploy ใน Google Apps Script)
+        const GOOGLE_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx437i_ry8nukkYV8cORdcEcsXSCta2if9yM8eOLwsmyfmJvXag-v8oUt0RjiiVDJe_/exec"; // ใส่ URL สคริปต์ที่ได้จากการสั่ง Deploy ใน Apps Script ที่นี่
+
+        // Password State & Config
+        const TEACHER_PASSWORD = "pkw";
+        let isTeacherAuthenticated = false;
+
+        // Default subjects list
+        const defaultSubjects = [
+            "ว30201 วิทยาการคำนวณ 1",
+            "ว30202 การเขียนโปรแกรมคอมพิวเตอร์",
+            "ว30203 การพัฒนาเว็บแอปพลิเคชัน",
+            "ว30204 โครงงานคอมพิวเตอร์ 1",
+            "ว30205 โครงงานคอมพิวเตอร์ 2"
+        ];
+
+        // Load subjects from localStorage or use defaults
+        let subjectsList = JSON.parse(localStorage.getItem('eval_subjects')) || defaultSubjects;
+
+        // Evaluation Data Array
+        let evalData = [];
+
+        let chartInstance = null;
+
+        // Set default date to today & Populate Subjects
+        document.getElementById('evalDate').valueAsDate = new Date();
+        renderSubjectDropdowns();
+
+        // Populate Dropdowns and Chips List
+        function renderSubjectDropdowns() {
+            const formSelect = document.getElementById('subject');
+            const filterSelect = document.getElementById('filterSubject');
+            const chipsList = document.getElementById('subjectChipsList');
+
+            const currentFormVal = formSelect.value;
+            const currentFilterVal = filterSelect.value;
+
+            // 1. Form Dropdown
+            formSelect.innerHTML = `<option value="" disabled selected>-- กรุณาเลือกรายวิชา --</option>`;
+            subjectsList.forEach(subj => {
+                formSelect.innerHTML += `<option value="${subj}">${subj}</option>`;
+            });
+            if (subjectsList.includes(currentFormVal)) {
+                formSelect.value = currentFormVal;
+            }
+
+            // 2. Filter Dropdown
+            filterSelect.innerHTML = `<option value="ALL">แสดงทุกรายวิชา</option>`;
+            subjectsList.forEach(subj => {
+                filterSelect.innerHTML += `<option value="${subj}">${subj}</option>`;
+            });
+            if (subjectsList.includes(currentFilterVal) || currentFilterVal === 'ALL') {
+                filterSelect.value = currentFilterVal || 'ALL';
+            }
+
+            // 3. Render Chips List in Manager
+            chipsList.innerHTML = '';
+            subjectsList.forEach((subj, index) => {
+                const chip = document.createElement('div');
+                chip.className = "inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-purple-100/70 border border-purple-200 text-purple-900 text-xs font-bold shadow-sm";
+                chip.innerHTML = `
+                    <span>${subj}</span>
+                    <button onclick="deleteSubject(${index})" class="text-pink-500 hover:text-red-600 transition p-0.5" title="ลบรายวิชานี้">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                `;
+                chipsList.appendChild(chip);
+            });
+
+            // Save to LocalStorage
+            localStorage.setItem('eval_subjects', JSON.stringify(subjectsList));
+        }
+
+        // Add New Subject
+        function addNewSubject() {
+            const input = document.getElementById('newSubjectName');
+            const name = input.value.trim();
+
+            if (!name) {
+                showModal("กรุณากรอกชื่อวิชา", "โปรดพิมพ์ชื่อรายวิชาที่ต้องการเพิ่ม");
+                return;
+            }
+
+            if (subjectsList.includes(name)) {
+                showModal("วิชานี้มีอยู่แล้ว", "ชื่อรายวิชานี้มีในระบบเรียบร้อยแล้ว");
+                return;
+            }
+
+            subjectsList.push(name);
+            input.value = '';
+            renderSubjectDropdowns();
+            showModal("เพิ่มวิชาสำเร็จ!", `เพิ่มรายวิชา "${name}" เข้าสู่ระบบเรียบร้อยแล้ว`);
+            
+            if (!document.getElementById('section-dashboard').classList.contains('hidden')) {
+                renderDashboard();
+            }
+        }
+
+        // Delete Subject
+        function deleteSubject(index) {
+            const removedName = subjectsList[index];
+            subjectsList.splice(index, 1);
+            renderSubjectDropdowns();
+            showModal("ลบวิชาเรียบร้อย", `ลบรายวิชา "${removedName}" ออกจากระบบแล้ว`);
+
+            if (!document.getElementById('section-dashboard').classList.contains('hidden')) {
+                renderDashboard();
+            }
+        }
+
+        // Toggle Manager Section View
+        function toggleSubjectManager() {
+            const container = document.getElementById('subjectManagerContainer');
+            const chevron = document.getElementById('managerChevron');
+
+            container.classList.toggle('hidden');
+            chevron.classList.toggle('rotate-180');
+        }
+
+        // Switch Tabs Logic with Authentication Guard
+        function switchTab(tab) {
+            if (tab === 'dashboard' && !isTeacherAuthenticated) {
+                openPasswordModal();
+                return;
+            }
+
+            const evalSection = document.getElementById('section-eval');
+            const dashboardSection = document.getElementById('section-dashboard');
+            const tabEvalBtn = document.getElementById('tab-eval');
+            const tabDashboardBtn = document.getElementById('tab-dashboard');
+
+            if (tab === 'eval') {
+                evalSection.classList.remove('hidden');
+                dashboardSection.classList.add('hidden');
+                
+                tabEvalBtn.className = "px-5 py-2 text-sm font-bold rounded-xl transition-all duration-300 bg-white text-purple-600 shadow-md";
+                tabDashboardBtn.className = "px-5 py-2 text-sm font-bold rounded-xl transition-all duration-300 text-white hover:bg-white/10 flex items-center gap-1.5";
+            } else {
+                evalSection.classList.add('hidden');
+                dashboardSection.classList.remove('hidden');
+
+                tabDashboardBtn.className = "px-5 py-2 text-sm font-bold rounded-xl transition-all duration-300 bg-white text-purple-600 shadow-md flex items-center gap-1.5";
+                tabEvalBtn.className = "px-5 py-2 text-sm font-bold rounded-xl transition-all duration-300 text-white hover:bg-white/10";
+
+                fetchDataFromSheet();
+            }
+        }
+
+        // Password Modal Handlers
+        function openPasswordModal() {
+            const modal = document.getElementById('passwordModal');
+            const box = document.getElementById('passwordBox');
+            const input = document.getElementById('pwdInput');
+            const error = document.getElementById('pwdError');
+
+            input.value = '';
+            error.classList.add('hidden');
+
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                box.classList.remove('scale-95');
+                box.classList.add('scale-100');
+                input.focus();
+            }, 10);
+        }
+
+        function cancelPasswordModal() {
+            const modal = document.getElementById('passwordModal');
+            const box = document.getElementById('passwordBox');
+
+            box.classList.remove('scale-100');
+            box.classList.add('scale-95');
+            modal.classList.add('opacity-0');
+
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+
+        function verifyPassword(e) {
+            e.preventDefault();
+            const inputVal = document.getElementById('pwdInput').value.trim();
+            const error = document.getElementById('pwdError');
+
+            if (inputVal.toLowerCase() === TEACHER_PASSWORD.toLowerCase()) {
+                isTeacherAuthenticated = true;
+                
+                const lockIcon = document.getElementById('lockIcon');
+                if (lockIcon) {
+                    lockIcon.className = "fa-solid fa-lock-open text-xs text-emerald-300";
+                }
+
+                cancelPasswordModal();
+                setTimeout(() => {
+                    switchTab('dashboard');
+                }, 300);
+            } else {
+                error.classList.remove('hidden');
+                document.getElementById('pwdInput').select();
+            }
+        }
+
+        // Lock / Logout Session
+        function lockTeacherSession() {
+            isTeacherAuthenticated = false;
+            const lockIcon = document.getElementById('lockIcon');
+            if (lockIcon) {
+                lockIcon.className = "fa-solid fa-lock text-xs text-yellow-200";
+            }
+            switchTab('eval');
+            showModal("ล็อกระบบเรียบร้อย", "ออกจากหน้าสรุปผลสำหรับครูแล้ว ต้องกรอกรหัสผ่านเพื่อเข้าใช้งานใหม่");
+        }
+
+        // Real-time calculation of evaluation form
+        function calculateScore() {
+            const q1 = document.querySelector('input[name="q1"]:checked');
+            const q2 = document.querySelector('input[name="q2"]:checked');
+            const q3 = document.querySelector('input[name="q3"]:checked');
+            const q4 = document.querySelector('input[name="q4"]:checked');
+            const q5 = document.querySelector('input[name="q5"]:checked');
+
+            const banner = document.getElementById('resultBanner');
+            const submitBtn = document.getElementById('submitBtn');
+
+            if (q1 && q2 && q3 && q4 && q5) {
+                const total = parseInt(q1.value) + parseInt(q2.value) + parseInt(q3.value) + parseInt(q4.value) + parseInt(q5.value);
+                let quality = "";
+                let colorClass = "";
+                let bgClass = "";
+                let stars = "";
+
+                if (total >= 17) {
+                    quality = "ดีเยี่ยม";
+                    colorClass = "text-pink-600";
+                    bgClass = "bg-pink-50 border-pink-300";
+                    stars = "⭐⭐⭐⭐";
+                } else if (total >= 13) {
+                    quality = "ดี";
+                    colorClass = "text-purple-600";
+                    bgClass = "bg-purple-50 border-purple-300";
+                    stars = "⭐⭐⭐";
+                } else if (total >= 9) {
+                    quality = "พอใช้";
+                    colorClass = "text-amber-600";
+                    bgClass = "bg-amber-50 border-amber-300";
+                    stars = "⭐⭐";
+                } else {
+                    quality = "ควรปรับปรุง";
+                    colorClass = "text-red-600";
+                    bgClass = "bg-red-50 border-red-300";
+                    stars = "⭐";
+                }
+
+                banner.className = `mt-8 p-6 rounded-2xl ${bgClass} border-2 text-center transition-all duration-300 shadow-sm`;
+                banner.innerHTML = `
+                    <div class="text-purple-600 font-bold mb-1 text-sm">ผลสรุปการประเมิน</div>
+                    <div class="text-3xl font-black ${colorClass} mb-2">
+                        คะแนนรวม ${total} / 20 คะแนน
+                    </div>
+                    <div class="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full bg-white/90 border font-bold ${colorClass} shadow-sm text-sm">
+                        ${stars} ระดับคุณภาพ : ${quality}
+                    </div>
+                `;
+
+                submitBtn.disabled = false;
+                submitBtn.className = "px-8 py-3.5 bg-gradient-to-r from-pink-400 to-purple-500 hover:from-pink-500 hover:to-purple-600 text-white font-bold rounded-2xl shadow-lg shadow-pink-200 cursor-pointer transition-all duration-300 flex items-center gap-2 transform hover:-translate-y-0.5";
+            } else {
+                banner.className = "mt-8 p-6 rounded-2xl bg-purple-50/60 border-2 border-dashed border-purple-200 text-center transition-all duration-300";
+                banner.innerHTML = `<p class="text-purple-400 font-medium text-sm">กรุณาประเมินให้ครบทั้ง 5 รายการเพื่อแสดงผลคะแนนสรุป</p>`;
+
+                submitBtn.disabled = true;
+                submitBtn.className = "px-8 py-3.5 bg-gray-200 text-gray-400 font-bold rounded-2xl shadow-none cursor-not-allowed transition-all duration-300 flex items-center gap-2";
+            }
+        }
+
+        // Form Submit Event Handler with Google Apps Script Sync
+        async function submitForm(e) {
+            e.preventDefault();
+
+            const submitBtn = document.getElementById('submitBtn');
+            const submitBtnText = document.getElementById('submitBtnText');
+
+            const group = document.getElementById('groupName').value.trim();
+            const date = document.getElementById('evalDate').value;
+            const evaluator = document.getElementById('evaluatorName').value.trim();
+            const role = document.querySelector('input[name="evaluatorRole"]:checked').value;
+            const subject = document.getElementById('subject').value;
+            const suggestions = document.getElementById('suggestions').value.trim();
+
+            const q1 = parseInt(document.querySelector('input[name="q1"]:checked').value);
+            const q2 = parseInt(document.querySelector('input[name="q2"]:checked').value);
+            const q3 = parseInt(document.querySelector('input[name="q3"]:checked').value);
+            const q4 = parseInt(document.querySelector('input[name="q4"]:checked').value);
+            const q5 = parseInt(document.querySelector('input[name="q5"]:checked').value);
+            const total = q1 + q2 + q3 + q4 + q5;
+
+            const payload = {
+                group, date, evaluator, role, subject,
+                q1, q2, q3, q4, q5, suggestions, total
+            };
+
+            // Local push first
+            evalData.push(payload);
+
+            // UI Loading state
+            submitBtn.disabled = true;
+            submitBtnText.innerText = "กำลังบันทึกลง Google Sheet...";
+
+            if (GOOGLE_SCRIPT_URL) {
+                try {
+                    await fetch(GOOGLE_SCRIPT_URL, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(payload)
+                    });
+                    showModal("บันทึกข้อมูลเรียบร้อย!", `ประเมินผลกลุ่ม "${group}" ในรายวิชา ${subject} ถูกส่งไปยัง Google Sheet แล้ว`);
+                } catch (err) {
+                    showModal("บันทึกสำเร็จ (โหมดจำลอง)", `บันทึกแบบประเมินเรียบร้อยแล้ว (จะสมบูรณ์เมื่อใส่ Google Apps Script URL)`);
+                }
+            } else {
+                showModal("บันทึกสำเร็จ!", `ประเมินผลกลุ่ม "${group}" ถูกบันทึกเรียบร้อยแล้ว (อย่าลืมใส่ URL จาก Google Apps Script เพื่อส่งเข้า Sheet)`);
+            }
+
+            // Reset Form & UI
+            submitBtnText.innerText = "บันทึกผลการประเมินลง Google Sheet";
+            document.getElementById('evaluationForm').reset();
+            document.getElementById('evalDate').valueAsDate = new Date();
+            calculateScore();
+        }
+
+        // Fetch Real-time data from Google Apps Script
+        async function fetchDataFromSheet() {
+            if (!GOOGLE_SCRIPT_URL) {
+                renderDashboard();
+                return;
+            }
+
+            try {
+                const res = await fetch(GOOGLE_SCRIPT_URL);
+                const json = await res.json();
+                if (json.result === 'success' && json.data) {
+                    evalData = json.data;
+                }
+            } catch (e) {
+                console.log("Cannot fetch live sheet data, using current memory data.");
+            }
+            renderDashboard();
+        }
+
+        // Group & Average Data Computation
+        function getGroupAverages(selectedSubject) {
+            let filtered = evalData;
+            if (selectedSubject !== 'ALL') {
+                filtered = evalData.filter(d => d.subject === selectedSubject);
+            }
+
+            const grouped = {};
+            filtered.forEach(item => {
+                if (!grouped[item.group]) {
+                    grouped[item.group] = {
+                        count: 0,
+                        q1: 0, q2: 0, q3: 0, q4: 0, q5: 0, total: 0
+                    };
+                }
+                grouped[item.group].count += 1;
+                grouped[item.group].q1 += Number(item.q1);
+                grouped[item.group].q2 += Number(item.q2);
+                grouped[item.group].q3 += Number(item.q3);
+                grouped[item.group].q4 += Number(item.q4);
+                grouped[item.group].q5 += Number(item.q5);
+                grouped[item.group].total += Number(item.total);
+            });
+
+            const result = [];
+            for (const groupName in grouped) {
+                const g = grouped[groupName];
+                const avgTotal = (g.total / g.count);
+                result.push({
+                    group: groupName,
+                    q1: (g.q1 / g.count).toFixed(1),
+                    q2: (g.q2 / g.count).toFixed(1),
+                    q3: (g.q3 / g.count).toFixed(1),
+                    q4: (g.q4 / g.count).toFixed(1),
+                    q5: (g.q5 / g.count).toFixed(1),
+                    avgTotal: avgTotal.toFixed(1),
+                    quality: getQualityLabel(avgTotal)
+                });
+            }
+
+            return result;
+        }
+
+        function getQualityLabel(score) {
+            if (score >= 17) return { text: "ดีเยี่ยม", color: "bg-pink-100 text-pink-800 border border-pink-200" };
+            if (score >= 13) return { text: "ดี", color: "bg-purple-100 text-purple-800 border border-purple-200" };
+            if (score >= 9) return { text: "พอใช้", color: "bg-amber-100 text-amber-800 border border-amber-200" };
+            return { text: "ควรปรับปรุง", color: "bg-red-100 text-red-800 border border-red-200" };
+        }
+
+        // Render Teacher Dashboard
+        function renderDashboard() {
+            const subject = document.getElementById('filterSubject').value;
+            const groupData = getGroupAverages(subject);
+
+            document.getElementById('dataCountBadge').innerText = `${groupData.length} กลุ่ม`;
+
+            const tbody = document.getElementById('summaryTableBody');
+            tbody.innerHTML = '';
+
+            if (groupData.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" class="text-center py-8 text-purple-300">
+                            <i class="fa-solid fa-folder-open text-3xl mb-2 block"></i>
+                            ยังไม่มีข้อมูลการประเมินในรายวิชานี้
+                        </td>
+                    </tr>
+                `;
+            } else {
+                groupData.forEach(row => {
+                    const tr = document.createElement('tr');
+                    tr.className = "bg-white/50 border-b border-purple-50 hover:bg-pink-50/50 transition";
+                    tr.innerHTML = `
+                        <td class="px-6 py-4 font-bold text-purple-950">${row.group}</td>
+                        <td class="px-4 py-4 text-center font-semibold text-pink-600">${row.q1}</td>
+                        <td class="px-4 py-4 text-center font-semibold text-purple-600">${row.q2}</td>
+                        <td class="px-4 py-4 text-center font-semibold text-sky-600">${row.q3}</td>
+                        <td class="px-4 py-4 text-center font-semibold text-emerald-600">${row.q4}</td>
+                        <td class="px-4 py-4 text-center font-semibold text-amber-600">${row.q5}</td>
+                        <td class="px-6 py-4 text-center bg-pink-50/70 font-black text-pink-600 text-base">${row.avgTotal}</td>
+                        <td class="px-6 py-4 text-center">
+                            <span class="px-3 py-1 rounded-full text-xs font-bold ${row.quality.color}">
+                                ${row.quality.text}
+                            </span>
+                        </td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            }
+
+            renderChart(groupData);
+        }
+
+        // Render Chart.js Graph
+        function renderChart(groupData) {
+            const ctx = document.getElementById('summaryChart').getContext('2d');
+
+            if (chartInstance) {
+                chartInstance.destroy();
+            }
+
+            const labels = groupData.map(g => g.group);
+            const totals = groupData.map(g => parseFloat(g.avgTotal));
+
+            chartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'คะแนนเฉลี่ยรวม (/20)',
+                        data: totals,
+                        backgroundColor: 'rgba(244, 114, 182, 0.85)',
+                        borderColor: 'rgba(236, 72, 153, 1)',
+                        borderWidth: 2,
+                        borderRadius: 12,
+                        hoverBackgroundColor: 'rgba(168, 85, 247, 0.9)'
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: {
+                            beginAtZero: true,
+                            max: 20,
+                            ticks: {
+                                stepSize: 4
+                            },
+                            grid: {
+                                borderDash: [3, 3]
+                            }
+                        },
+                        x: {
+                            grid: {
+                                display: false
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    return ` คะแนนเฉลี่ย: ${context.raw} / 20 คะแนน`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Export Data to CSV (Including Suggestions)
+        function exportToCSV() {
+            const subject = document.getElementById('filterSubject').value;
+            const groupData = getGroupAverages(subject);
+
+            if (groupData.length === 0) {
+                showModal("ไม่พบข้อมูล", "ไม่มีข้อมูลสำหรับดาวน์โหลดในรายวิชานี้");
+                return;
+            }
+
+            let csvContent = "\uFEFF";
+            csvContent += "กลุ่ม,การนำเสนอ (4),ความครบถ้วนเนื้อหา (4),การออกแบบ (4),ความสมบูรณ์ผลงาน (4),ความคิดสร้างสรรค์ (4),คะแนนเฉลี่ยรวม (20),ระดับคุณภาพ,ข้อเสนอแนะเพิ่มเติม\n";
+
+            groupData.forEach(row => {
+                const groupComments = evalData
+                    .filter(d => d.group === row.group && (subject === 'ALL' || d.subject === subject))
+                    .map(d => d.suggestions)
+                    .filter(s => s)
+                    .join(" | ");
+
+                csvContent += `"${row.group}",${row.q1},${row.q2},${row.q3},${row.q4},${row.q5},${row.avgTotal},"${row.quality.text}","${groupComments.replace(/"/g, '""')}"\n`;
+            });
+
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", `สรุปผลการประเมินโครงงาน_${subject.replace(/\s+/g, '_')}.csv`);
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        }
+
+        // Custom Modal UI logic
+        function showModal(title, msg) {
+            document.getElementById('modalTitle').innerText = title;
+            document.getElementById('modalMessage').innerText = msg;
+            
+            const modal = document.getElementById('modal');
+            const modalBox = document.getElementById('modalBox');
+
+            modal.classList.remove('hidden');
+            setTimeout(() => {
+                modal.classList.remove('opacity-0');
+                modalBox.classList.remove('scale-95');
+                modalBox.classList.add('scale-100');
+            }, 10);
+        }
+
+        function closeModal() {
+            const modal = document.getElementById('modal');
+            const modalBox = document.getElementById('modalBox');
+
+            modalBox.classList.remove('scale-100');
+            modalBox.classList.add('scale-95');
+            modal.classList.add('opacity-0');
+
+            setTimeout(() => {
+                modal.classList.add('hidden');
+            }, 300);
+        }
+    </script>
+</body>
+</html>
