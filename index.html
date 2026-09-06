@@ -621,8 +621,10 @@
             "ว30294 การพัฒนาโปรแกรมสำหรับปัญญาประดิษฐ์ ม.6"
         ];
 
-        // Load subjects from localStorage or use defaults
-        let subjectsList = JSON.parse(localStorage.getItem('eval_subjects')) || defaultSubjects;
+        // Subjects are stored centrally in Google Sheets.
+        // Keep defaults only as a fallback if the server cannot be reached.
+        let subjectsList = [...defaultSubjects];
+        let subjectsLoadedFromServer = false;
 
         // Evaluation Data Array
         let evalData = [];
@@ -632,6 +634,7 @@
         // Set default date to today & Populate Subjects
         document.getElementById('evalDate').valueAsDate = new Date();
         renderSubjectDropdowns();
+        loadSubjectsFromServer();
 
         // Populate Dropdowns and Chips List
         function renderSubjectDropdowns() {
@@ -674,12 +677,33 @@
                 chipsList.appendChild(chip);
             });
 
-            // Save to LocalStorage
-            localStorage.setItem('eval_subjects', JSON.stringify(subjectsList));
+            // รายวิชาถูกเก็บใน Google Sheet ไม่ใช้ localStorage เป็นฐานข้อมูลหลัก
+        }
+
+        // Load subjects from Google Sheet (server)
+        async function loadSubjectsFromServer() {
+            try {
+                const response = await fetch(GOOGLE_SCRIPT_URL + '?action=getSubjects', {
+                    method: 'GET',
+                    cache: 'no-store'
+                });
+                const result = await response.json();
+
+                if (result.result === 'success' && Array.isArray(result.subjects)) {
+                    subjectsList = result.subjects.filter(Boolean);
+                    subjectsLoadedFromServer = true;
+                    renderSubjectDropdowns();
+                } else {
+                    console.warn('ไม่สามารถโหลดรายวิชาจาก Google Sheet ได้', result);
+                }
+            } catch (error) {
+                console.error('โหลดรายวิชาจาก Google Sheet ไม่สำเร็จ:', error);
+                // ใช้ defaultSubjects ต่อไปเป็น fallback
+            }
         }
 
         // Add New Subject
-        function addNewSubject() {
+        async function addNewSubject() {
             const input = document.getElementById('newSubjectName');
             const name = input.value.trim();
 
@@ -693,17 +717,78 @@
                 return;
             }
 
-            subjectsList.push(name);
-            input.value = '';
-            renderSubjectDropdowns();
-            showModal("เพิ่มวิชาสำเร็จ!", `เพิ่มรายวิชา "${name}" เข้าสู่ระบบเรียบร้อยแล้ว`);
-            
-            if (!document.getElementById('section-dashboard').classList.contains('hidden')) {
-                renderDashboard();
+            try {
+                const response = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({
+                        action: 'addSubject',
+                        subject: name
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.result === 'success') {
+                    subjectsList = Array.isArray(result.subjects)
+                        ? result.subjects
+                        : [...subjectsList, name];
+
+                    input.value = '';
+                    renderSubjectDropdowns();
+                    showModal("เพิ่มวิชาสำเร็จ!", `เพิ่มรายวิชา "${name}" และบันทึกลง Google Sheet เรียบร้อยแล้ว`);
+
+                    if (!document.getElementById('section-dashboard').classList.contains('hidden')) {
+                        renderDashboard();
+                    }
+                } else {
+                    showModal("เพิ่มวิชาไม่สำเร็จ", result.error || "ไม่สามารถบันทึกรายวิชาได้");
+                }
+            } catch (error) {
+                console.error(error);
+                showModal("เกิดข้อผิดพลาด", "ไม่สามารถเชื่อมต่อ Google Sheet ได้ กรุณาตรวจสอบการ Deploy Apps Script");
             }
         }
 
         // Delete Subject
+        async function deleteSubject(index) {
+            const removedName = subjectsList[index];
+
+            if (!removedName) return;
+
+            try {
+                const response = await fetch(GOOGLE_SCRIPT_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+                    body: JSON.stringify({
+                        action: 'deleteSubject',
+                        subject: removedName
+                    })
+                });
+
+                const result = await response.json();
+
+                if (result.result === 'success') {
+                    subjectsList = Array.isArray(result.subjects)
+                        ? result.subjects
+                        : subjectsList.filter((_, i) => i !== index);
+
+                    renderSubjectDropdowns();
+                    showModal("ลบวิชาเรียบร้อย", `ลบรายวิชา "${removedName}" จาก Google Sheet แล้ว`);
+
+                    if (!document.getElementById('section-dashboard').classList.contains('hidden')) {
+                        renderDashboard();
+                    }
+                } else {
+                    showModal("ลบวิชาไม่สำเร็จ", result.error || "ไม่สามารถลบรายวิชาได้");
+                }
+            } catch (error) {
+                console.error(error);
+                showModal("เกิดข้อผิดพลาด", "ไม่สามารถเชื่อมต่อ Google Sheet ได้");
+            }
+        }
+
+        // Toggle Manager Section View
         function deleteSubject(index) {
             const removedName = subjectsList[index];
             subjectsList.splice(index, 1);
